@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ReelCopy AI — Caption Rewriter</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0c0c0f;--surface:#141418;--surface2:#1c1c22;--border:#2a2a35;
+  --border2:#3a3a48;--text:#f0f0f4;--muted:#8888a0;--accent:#7c6dfa;
+  --accent2:#a594ff;--tiktok:#ff3b5c;--ig:#e040fb;--yt:#ff4444;
+  --fb:#2d88ff;--success:#4ade80;--r:12px;
+}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-size:15px;line-height:1.6;min-height:100vh}
+.app{max-width:800px;margin:0 auto;padding:2.5rem 1.5rem 5rem}
+.header{text-align:center;margin-bottom:2.5rem}
+.logo{display:inline-flex;align-items:center;gap:8px;background:var(--surface2);border:1px solid var(--border2);border-radius:99px;padding:6px 16px 6px 10px;margin-bottom:1.5rem}
+.logo-dot{width:8px;height:8px;border-radius:50%;background:var(--accent);box-shadow:0 0 10px var(--accent)}
+.logo-text{font-size:11px;font-weight:600;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase}
+h1{font-family:'DM Serif Display',serif;font-size:clamp(30px,5vw,46px);font-weight:400;line-height:1.12;margin-bottom:0.75rem;background:linear-gradient(135deg,#f0f0f4 0%,var(--accent2) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.subtitle{font-size:15px;color:var(--muted);max-width:440px;margin:0 auto}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1.5rem;margin-bottom:1.25rem}
+.card-label{font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:0.875rem;display:flex;align-items:center;gap:6px}
+.card-label::before{content:'';width:3px;height:3px;border-radius:50%;background:var(--accent)}
+textarea{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;line-height:1.6;padding:0.875rem 1rem;resize:none;transition:border-color 0.2s;outline:none}
+textarea:focus{border-color:var(--accent)}
+textarea::placeholder{color:var(--muted)}
+.char-count{font-size:11px;color:var(--muted);text-align:right;margin-top:6px}
+.platform-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:1.25rem}
+.plat-btn{display:flex;align-items:center;gap:7px;padding:8px 16px;border-radius:99px;border:1px solid var(--border2);background:var(--surface2);color:var(--muted);font-size:13px;font-weight:500;cursor:pointer;transition:all 0.18s;user-select:none;font-family:'DM Sans',sans-serif}
+.plat-btn.active.tk{background:#ff3b5c18;border-color:#ff3b5c55;color:var(--tiktok)}
+.plat-btn.active.ig{background:#e040fb18;border-color:#e040fb55;color:var(--ig)}
+.plat-btn.active.yt{background:#ff444418;border-color:#ff444455;color:var(--yt)}
+.plat-btn.active.fb{background:#2d88ff18;border-color:#2d88ff55;color:var(--fb)}
+.plat-dot{width:8px;height:8px;border-radius:50%}
+.tk .plat-dot{background:var(--tiktok)}.ig .plat-dot{background:var(--ig)}
+.yt .plat-dot{background:var(--yt)}.fb .plat-dot{background:var(--fb)}
+.tone-row{display:flex;flex-wrap:wrap;gap:8px}
+.tone-btn{padding:7px 15px;border-radius:99px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:12px;cursor:pointer;transition:all 0.18s;font-family:'DM Sans',sans-serif}
+.tone-btn.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.generate-btn{width:100%;padding:15px;border-radius:var(--r);border:none;background:var(--accent);color:#fff;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:600;cursor:pointer;transition:all 0.2s}
+.generate-btn:hover:not(:disabled){background:var(--accent2);transform:translateY(-1px);box-shadow:0 8px 24px rgba(124,109,250,0.3)}
+.generate-btn:disabled{opacity:0.45;cursor:not-allowed;transform:none}
+.btn-inner{display:flex;align-items:center;justify-content:center;gap:8px}
+.spinner{width:16px;height:16px;border:2px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:spin 0.7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.error-card{background:#ff444412;border:1px solid #ff444433;border-radius:var(--r);padding:1rem 1.25rem;color:#ff9999;font-size:13px;margin-bottom:1rem;display:none;line-height:1.6}
+.error-card.show{display:block}
+.results{display:none}.results.show{display:block}
+.results-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;flex-wrap:wrap;gap:10px}
+.results-title{font-family:'DM Serif Display',serif;font-size:24px;font-weight:400}
+.reset-btn{font-size:13px;color:var(--muted);background:none;border:1px solid var(--border);border-radius:99px;padding:6px 16px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.18s}
+.reset-btn:hover{color:var(--text);border-color:var(--border2)}
+.caption-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1.25rem;margin-bottom:1rem;animation:fadeUp 0.4s ease both}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.caption-card:nth-child(2){animation-delay:.09s}.caption-card:nth-child(3){animation-delay:.18s}.caption-card:nth-child(4){animation-delay:.27s}
+.caption-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:8px}
+.platform-badge{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600}
+.badge-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.badge-dot.tk{background:var(--tiktok)}.badge-dot.ig{background:var(--ig)}
+.badge-dot.yt{background:var(--yt)}.badge-dot.fb{background:var(--fb)}
+.platform-meta{font-size:11px;color:var(--muted);background:var(--surface2);padding:3px 10px;border-radius:99px;border:1px solid var(--border)}
+.copy-btn{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--muted);background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:6px 12px;cursor:pointer;transition:all 0.18s;font-family:'DM Sans',sans-serif;white-space:nowrap}
+.copy-btn:hover{color:var(--text);border-color:var(--border2)}
+.copy-btn.copied{color:var(--success);border-color:#4ade8044}
+.caption-text{font-size:14px;line-height:1.75;white-space:pre-wrap;word-break:break-word;margin-bottom:1rem;padding-bottom:1rem;border-bottom:1px solid var(--border)}
+.hashtags{display:flex;flex-wrap:wrap;gap:6px}
+.hashtag{font-size:12px;padding:4px 11px;border-radius:99px;background:var(--surface2);border:1px solid var(--border);color:var(--muted);cursor:pointer;transition:all 0.15s}
+.hashtag:hover{color:var(--text);border-color:var(--border2)}
+.hashtag.copied-tag{color:var(--success);border-color:#4ade8033}
+footer{text-align:center;margin-top:3rem;font-size:12px;color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <div class="logo"><span class="logo-dot"></span><span class="logo-text">ReelCopy AI · Beta</span></div>
+    <h1>One video.<br>Every platform.</h1>
+    <p class="subtitle">Paste your script or topic — get AI-crafted captions and hashtags for every platform in seconds.</p>
+  </div>
+
+  <div id="input-section">
+    <div class="card">
+      <div class="card-label">Your video topic or script</div>
+      <textarea id="topic-input" rows="6" placeholder="e.g. 'Top 5 AI tools that will replace your entire workflow in 2026'..."></textarea>
+      <div class="char-count" id="char-count">0 / 1500</div>
+    </div>
+    <div class="card">
+      <div class="card-label">Platforms</div>
+      <div class="platform-row">
+        <button class="plat-btn tk active" onclick="togglePlatform(this,'tiktok')"><span class="plat-dot"></span>TikTok</button>
+        <button class="plat-btn ig active" onclick="togglePlatform(this,'instagram')"><span class="plat-dot"></span>Instagram</button>
+        <button class="plat-btn yt active" onclick="togglePlatform(this,'youtube')"><span class="plat-dot"></span>YouTube</button>
+        <button class="plat-btn fb active" onclick="togglePlatform(this,'facebook')"><span class="plat-dot"></span>Facebook</button>
+      </div>
+      <div class="card-label" style="margin-top:1.25rem">Caption tone</div>
+      <div class="tone-row">
+        <button class="tone-btn active" onclick="selectTone(this)">Viral &amp; punchy</button>
+        <button class="tone-btn" onclick="selectTone(this)">Educational</button>
+        <button class="tone-btn" onclick="selectTone(this)">Storytelling</button>
+        <button class="tone-btn" onclick="selectTone(this)">Motivational</button>
+        <button class="tone-btn" onclick="selectTone(this)">Casual &amp; funny</button>
+      </div>
+    </div>
+    <div class="error-card" id="error-card"></div>
+    <button class="generate-btn" id="gen-btn" onclick="generateCaptions()">
+      <div class="btn-inner" id="btn-inner">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+        Generate captions
+      </div>
+    </button>
+  </div>
+
+  <div class="results" id="results">
+    <div class="results-header">
+      <span class="results-title">Your captions</span>
+      <button class="reset-btn" onclick="resetAll()">← New video</button>
+    </div>
+    <div id="captions-container"></div>
+  </div>
+  <footer>ReelCopy AI · Powered by Claude</footer>
+</div>
+
+<script>
+const platforms = new Set(['tiktok','instagram','youtube','facebook']);
+let selectedTone = 'Viral & punchy';
+const platformConfig = {
+  tiktok:    {label:'TikTok',    cls:'tk', meta:'15–60s · hook-first'},
+  instagram: {label:'Instagram', cls:'ig', meta:'Reels · hashtag-heavy'},
+  youtube:   {label:'YouTube',   cls:'yt', meta:'SEO-optimised description'},
+  facebook:  {label:'Facebook',  cls:'fb', meta:'Story-driven · shareable'},
+};
+
+document.getElementById('topic-input').addEventListener('input', function() {
+  if(this.value.length > 1500) this.value = this.value.slice(0,1500);
+  document.getElementById('char-count').textContent = this.value.length + ' / 1500';
+});
+function togglePlatform(btn, p) {
+  if(platforms.has(p) && platforms.size===1) return;
+  platforms.has(p) ? (platforms.delete(p), btn.classList.remove('active')) : (platforms.add(p), btn.classList.add('active'));
+}
+function selectTone(btn) {
+  document.querySelectorAll('.tone-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active'); selectedTone = btn.textContent;
+}
+function showError(msg){const e=document.getElementById('error-card');e.innerHTML=msg;e.classList.add('show');}
+function hideError(){document.getElementById('error-card').classList.remove('show');}
+function setBtnLoading(on){
+  const btn=document.getElementById('gen-btn'),inner=document.getElementById('btn-inner');
+  btn.disabled=on;
+  inner.innerHTML=on
+    ?'<div class="spinner"></div> Generating your captions...'
+    :'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg> Generate captions';
+}
+
+async function generateCaptions() {
+  const topic = document.getElementById('topic-input').value.trim();
+  if(!topic){showError('Please enter a video topic or script.');return;}
+  if(platforms.size===0){showError('Please select at least one platform.');return;}
+  hideError(); setBtnLoading(true);
+  const sel=[...platforms];
+  const prompt=`You are an expert social media copywriter for faceless AI video creators.
+Video topic: "${topic}"
+Tone: ${selectedTone}
+Platforms needed: ${sel.map(p=>platformConfig[p].label).join(', ')}
+Return ONLY valid JSON, no markdown, no backticks, no explanation.
+Only include keys for these platforms: ${sel.join(',')}.
+Format: {"tiktok":{"caption":"...","hashtags":["tag1","tag2","tag3","tag4","tag5","tag6","tag7","tag8"]},"instagram":{"caption":"...","hashtags":["tag1","tag2","tag3","tag4","tag5","tag6","tag7","tag8","tag9","tag10"]},"youtube":{"caption":"...","hashtags":["tag1","tag2","tag3","tag4","tag5"]},"facebook":{"caption":"...","hashtags":["tag1","tag2","tag3","tag4"]}}
+Rules — TikTok: scroll-stopping hook first line, under 150 chars, casual tone, 2-3 emojis, strong CTA. Instagram: aesthetic, line breaks, emojis, 3-5 sentences, question or CTA at end, 10 hashtags. YouTube: SEO-first 100-200 word description, natural keywords, professional but warm. Facebook: conversational story, 2-4 sentences, question at end to drive comments. Hashtag values must NOT include # symbol. Apply "${selectedTone}" tone across all platforms.`;
+
+  try {
+    const res = await fetch('/api/generate', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1200,messages:[{role:'user',content:prompt}]})
+    });
+    if(!res.ok){
+      const err=await res.json().catch(()=>({}));
+      throw new Error(err.error||'Server error '+res.status);
+    }
+    const data=await res.json();
+    if(data.error) throw new Error(data.error.message||JSON.stringify(data.error));
+    const raw=data.content.map(b=>b.text||'').join('');
+    const parsed=JSON.parse(raw.replace(/```json|```/g,'').trim());
+    renderResults(parsed,sel);
+  } catch(e){
+    showError('⚠ '+e.message);
+    setBtnLoading(false);
+  }
+}
+
+function renderResults(data,sel){
+  const c=document.getElementById('captions-container');
+  c.innerHTML='';
+  sel.forEach(platform=>{
+    if(!data[platform]) return;
+    const cfg=platformConfig[platform];
+    const {caption,hashtags=[]}=data[platform];
+    const card=document.createElement('div');
+    card.className='caption-card';
+    const full=caption+'\n\n'+hashtags.map(h=>'#'+h).join(' ');
+    card.innerHTML=`
+      <div class="caption-header">
+        <div class="platform-badge"><span class="badge-dot ${cfg.cls}"></span>${cfg.label}<span class="platform-meta">${cfg.meta}</span></div>
+        <button class="copy-btn" onclick="copyFull(this,${JSON.stringify(full).replace(/'/g,"&#39;")})">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>Copy all
+        </button>
+      </div>
+      <div class="caption-text">${esc(caption)}</div>
+      <div class="hashtags">${hashtags.map(h=>`<span class="hashtag" onclick="copyTag(this,'#${esc(h)}')">#${esc(h)}</span>`).join('')}</div>`;
+    c.appendChild(card);
+  });
+  document.getElementById('input-section').style.display='none';
+  document.getElementById('results').classList.add('show');
+  setBtnLoading(false);
+}
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function copyFull(btn,text){
+  navigator.clipboard.writeText(text).then(()=>{
+    const o=btn.innerHTML;btn.classList.add('copied');btn.innerHTML='<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Copied!';
+    setTimeout(()=>{btn.classList.remove('copied');btn.innerHTML=o;},2200);
+  });
+}
+function copyTag(el,t){navigator.clipboard.writeText(t).then(()=>{el.classList.add('copied-tag');setTimeout(()=>el.classList.remove('copied-tag'),1500);});}
+function resetAll(){
+  document.getElementById('results').classList.remove('show');
+  document.getElementById('input-section').style.display='block';
+  document.getElementById('topic-input').value='';
+  document.getElementById('char-count').textContent='0 / 1500';
+  document.getElementById('captions-container').innerHTML='';
+  setBtnLoading(false);hideError();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+</script>
+</body>
+</html>
